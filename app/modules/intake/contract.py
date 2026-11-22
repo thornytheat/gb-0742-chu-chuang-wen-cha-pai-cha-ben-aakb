@@ -27,6 +27,7 @@ class Cabinet(BaseModel):
     lower_mm: int = Field(ge=0, le=4500)
     temp_limit: Decimal = Field(gt=0, le=20)
     rh_limit: Decimal = Field(gt=0, le=100)
+    loan_cabinet: bool = False
 
     @model_validator(mode="after")
     def valid_separation(self):

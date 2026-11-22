@@ -1,4 +1,5 @@
 import {drill, el, entries, fault, hour, jump, line, pick, put, q, stamp, state, table, words} from './paper.js';
+import {retention} from './retention.js';
 
 const raw = (row) => row.raw.map((value) => JSON.stringify(value)).join(' · ');
 const issue = (target, rows) => {
@@ -210,4 +211,4 @@ function archive({history,run}) {
     ['持续门槛',`${run.sustained_hours} h`],['耗时',`${run.elapsed_ms} ms`],['归卷柜号',run.cabinets.map((item) => item.id).join('、')]]));
 }
 
-export const stages = {intake, assignment, pairing, gradient, episodes, audit, archive};
+export const stages = {intake, assignment, pairing, gradient, episodes, audit, archive, retention};

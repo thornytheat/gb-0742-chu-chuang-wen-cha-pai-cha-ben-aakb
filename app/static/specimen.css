@@ -69,4 +69,15 @@ sup { font: 10px var(--mono); color: var(--accent); }
 .history-list a[aria-current] { background: var(--accent-soft); font-weight: 700; }
 .digest-list .rule-list { grid-template-columns: minmax(70px,.35fr) minmax(0,1fr); }
 .jump-list { display: grid; gap: 4px; margin-top: 6px; }
+.state.lock { color: var(--unstable); }
+.state.keep { color: var(--warn); }
+.state.downgrade { color: var(--stable); }
+.carry-form { display: grid; gap: 8px; padding: 9px; border-bottom: 1px solid var(--ruling); }
+.carry-form label { display: grid; gap: 4px; font: 12px var(--serif); color: var(--ink-dim); }
+.carry-form input { padding: 5px 7px; border: 1px solid var(--metal); font-family: var(--mono); }
+.history-item { display: block; width: 100%; text-align: left; padding: 6px 8px; border: 0; border-bottom: 1px solid var(--ruling);
+  background: transparent; color: var(--accent-dark); font-family: var(--mono); cursor: pointer; }
+.history-item[aria-current] { background: var(--accent-soft); font-weight: 700; }
+.rule-title { margin: 10px 0 4px; font: 700 12px var(--serif); color: var(--ink-dim); }
+.proof-line { padding: 3px 0; border-bottom: 1px dotted var(--ruling); font-size: 11px; color: var(--ink-soft); }
 @media (max-width: 690px) { .cut-drawing { min-height: 298px; } }

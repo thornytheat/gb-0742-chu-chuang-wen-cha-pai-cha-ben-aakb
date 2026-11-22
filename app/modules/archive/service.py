@@ -39,6 +39,9 @@ class ArchiveService:
         if manifest["policy"] != POLICY:
             raise FieldError("OLD_POLICY", "当前规则无法复算此归卷", 409)
         pinned = verify(archive)
+        if pinned is None:
+            # 已降级为摘要档：全量原档不在库内，只做摘要与台账核验
+            return {"manifest": manifest, "verified": True, "reused": True, "mode": "summary"}
         if json_sha(evaluate(pinned)) != manifest["result_sha256"]:
             raise FieldError("RULE_DRIFT", "复算结果摘要不一致", 409)
         return {"manifest": manifest, "verified": True, "reused": True}

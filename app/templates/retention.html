@@ -1,0 +1,25 @@
+<div class="triple split-records">
+  <section class="panel">
+    <div class="panel__head"><h2>结转批次</h2></div>
+    <div class="panel__body">
+      <form id="carry-form" class="carry-form">
+        <label>结转季 <input id="season" name="season" value="2026-close" maxlength="32" required></label>
+        <button id="carry" class="button fill" type="button">形成降级结论</button>
+      </form>
+      <div id="batch-list" class="scroll"></div>
+    </div>
+  </section>
+  <section class="panel wide-pane">
+    <div class="panel__head"><h2>逐班降级结论</h2></div>
+    <div id="conclusions" class="panel__body"></div>
+  </section>
+  <section class="panel">
+    <div class="panel__head"><h2>批次量账与依据</h2></div>
+    <div id="retention-meta" class="panel__body"></div>
+  </section>
+</div>
+<ol class="footnotes">
+  <li>结论分锁定、保留、降级三档；借展柜、持续异常、未清工单与冲突证据一律锁定或保留原件。</li>
+  <li>异常段、工单与归卷复算共用同一证据台账行号与行摘要，降级后仍可逐行核验。</li>
+  <li>生成失败保留旧版；同一结转季重跑返回同一批次，不新增结论。</li>
+</ol>

@@ -27,6 +27,13 @@ class ArchiveStore:
                     input TEXT NOT NULL
                 )
             """)
+            connection.execute("""
+                CREATE TABLE IF NOT EXISTS retention_batches (
+                    id TEXT PRIMARY KEY,
+                    payload TEXT NOT NULL,
+                    created TEXT NOT NULL
+                )
+            """)
 
     def insert(self, manifest, evidence, source):
         with self.connect() as connection:
@@ -45,3 +52,33 @@ class ArchiveStore:
     def history(self):
         with self.connect() as connection:
             return [json.loads(row[0]) for row in connection.execute("SELECT manifest FROM shift_archives ORDER BY rowid DESC")]
+
+    def all_archives(self):
+        with self.connect() as connection:
+            rows = connection.execute("SELECT manifest, evidence, input FROM shift_archives ORDER BY rowid").fetchall()
+        return [tuple(json.loads(value) for value in row) for row in rows]
+
+    def fetch_batch(self, batch_id):
+        with self.connect() as connection:
+            record = connection.execute("SELECT payload FROM retention_batches WHERE id = ?", (batch_id,)).fetchone()
+        if record is None:
+            raise FieldError("UNKNOWN_BATCH", "该结转批次未登记", 404)
+        return json.loads(record[0])
+
+    def list_batches(self):
+        with self.connect() as connection:
+            return [json.loads(row[0]) for row in
+                    connection.execute("SELECT payload FROM retention_batches ORDER BY rowid DESC")]
+
+    def commit_retention(self, batch, downgrades):
+        """同一事务提交批次结论与全部降级写入；任一步失败整体回滚。"""
+        with self.connect() as connection:
+            existing = connection.execute("SELECT 1 FROM retention_batches WHERE id = ?", (batch["id"],)).fetchone()
+            if existing:
+                return False
+            connection.execute("INSERT INTO retention_batches VALUES (?, ?, ?)",
+                               (batch["id"], canonical(batch), batch["created"]))
+            for run_id, evidence, source in downgrades:
+                connection.execute("UPDATE shift_archives SET evidence = ?, input = ? WHERE id = ?",
+                                   (canonical(evidence), canonical(source), run_id))
+        return True

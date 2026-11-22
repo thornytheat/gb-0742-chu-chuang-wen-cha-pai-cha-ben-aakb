@@ -7,7 +7,8 @@ from app.config import MAX_FILE_BYTES, ROOT
 from app.errors import FieldError
 from app.modules.intake.contract import Package, Shift
 
-CATALOG = {"shift": "值班混合样例", "clean": "全稳校验样例", "truncated": "截断图档样例"}
+CATALOG = {"shift": "值班混合样例", "clean": "全稳校验样例", "transient": "瞬时异常留存样例",
+           "truncated": "截断图档样例"}
 
 
 def load_sample(sample, root=ROOT / "sample_data"):
@@ -31,3 +32,14 @@ def restore(data):
         return Package(Shift.model_validate(data["contract"]), base64.b64decode(data["csv_base64"], validate=True))
     except (KeyError, TypeError, ValueError, binascii.Error) as exc:
         raise FieldError("ARCHIVE_DAMAGED", "归卷输入无法读取", 409) from exc
+
+
+def restore_summary(data):
+    """还原降级后的摘要型输入，不含全量原档，仅保留被引用原行。"""
+    try:
+        spec = Shift.model_validate(data["contract"])
+        rows = data["retained_rows"]
+        digest = data["original_file_sha256"]
+    except (KeyError, TypeError, ValueError) as exc:
+        raise FieldError("ARCHIVE_DAMAGED", "降级摘要无法读取", 409) from exc
+    return spec, rows, digest

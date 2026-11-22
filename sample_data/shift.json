@@ -19,7 +19,8 @@
       "upper_mm": 1650,
       "lower_mm": 450,
       "temp_limit": "2.0",
-      "rh_limit": "8.0"
+      "rh_limit": "8.0",
+      "loan_cabinet": true
     }
   ],
   "tolerance_seconds": 240,

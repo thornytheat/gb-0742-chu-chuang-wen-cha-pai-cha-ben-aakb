@@ -13,6 +13,7 @@
 | M5 异常持续 | 定位连续与瞬时异常段及其原行 | `GET /api/runs/{run_id}/episodes/{cabinet}` | `app/modules/episodes/segment.py` | `tests/test_episodes.py` |
 | M6 值班单勾稽 | 核对柜时与图档行，查报警误报漏报 | `GET /api/runs/{run_id}/audit` | `app/modules/audit/reconcile.py` | `tests/test_audit.py` |
 | M7 证据归卷 | 运行、复算或下载带摘要的归卷 | `POST /api/runs` `POST /api/runs/{run_id}/rerun` `GET /api/runs/{run_id}/export` | `app/modules/archive/pipeline.py` `app/modules/archive/service.py` `app/modules/archive/proof.py` `app/store.py` | `tests/test_archive.py` |
+| M8 原档降级 | 结转季逐班形成锁定/保留/降级结论并落地摘要 | `POST /api/retention/carry-over` `GET /api/retention/batches/{id}` `GET /api/retention/runs/{run_id}/conclusion` | `app/modules/retention/decision.py` `app/modules/retention/ledger.py` `app/modules/retention/service.py` `app/modules/retention/handler.py` | `tests/test_retention.py` |
 
 ## 陷阱登记
 
@@ -36,6 +37,17 @@
 | TRAP-25 | 在混合部署契约上叠加同柜同层窗 | 任选一个探头 | 标重叠并拒用重叠段 | `app/modules/assignment/windows.py` | `tests/test_assignment.py::test_second_probe_at_same_position_marks_overlap_only` |
 
 真实反例还有迁移前一分钟的下层读数不能与迁移后的上层配对，近中点无证读数不能挤掉同小时有效候选，区间端点的展示舍入不能改变判级，缺证切断连续异常，工单不能重复清销同一段。
+
+### 原档降级陷阱（M8）
+
+| TRAP | 现象 | 朴素实现会怎样 | 本项目处理 | 处理位置 | 测试 |
+|---|---|---|---|---|---|
+| TRAP-31 | 借展柜 CV-21 与普通柜同档 | 按年龄整批降级，误删借展原件 | 契约 `loan_cabinet` 触发 LOCK，全档留存 | `retention/ledger.py` | `test_loan_cabinet_and_sustained_episode_lock_shift` |
+| TRAP-32 | 持续异常段、未报段仍要抽查 | 只留摘要后无法追原读数 | 持续段/未报段/冲突证据触发 LOCK，瞬时段与工单引用触发 KEEP | `retention/ledger.py` | `test_transient_episode_keeps_full_original_with_referenced_rows` |
+| TRAP-33 | 同次结转被重跑 | 重复写入批次，结论越跑越多 | 批次号由结转季与在档归卷派生，重跑返回同批次 `reused` | `retention/service.py` | `test_rerun_same_carry_over_returns_same_batch_and_creates_nothing_new` |
+| TRAP-34 | 事务中途写盘失败 | 部分班次已降级、批次缺失 | 单事务提交，触发器失败整体回滚，旧版不动可重试 | `app/store.py` | `test_failed_carry_over_keeps_old_versions_and_allows_retry` |
+| TRAP-35 | 降级后摘要被改写 | 复算仍报通过 | 保留原行重算 `row_sha256`，并核对原档与台账摘要 | `archive/proof.py` | `test_tampered_summary_row_is_detected_by_replay` |
+| TRAP-36 | 异常段、工单各存一份行引用 | 两处证据漂移、无法互证 | 统一证据台账行号与行摘要，三处共用同一引用 | `retention/ledger.py` | `test_episode_ticket_and_ledger_share_the_same_row_identifiers` |
 
 ## 对账规则
 
